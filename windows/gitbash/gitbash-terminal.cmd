@@ -79,28 +79,34 @@ echo Old settings is coppied to %backupJson%, you can restore it if something go
 for /f "delims=" %%i in ('powershell -Command "[guid]::NewGuid()"') do set "guid=%%i"
 set "optionCommandLine=%gitBashPath% --login -i"
 set "optionName=Git Bash"
-set "optionSource=Windows.Terminal.Wsl"
 
 :: At this point I do think why not use plain PowerShell to do the job. :"D
 :: Edit: Ừ chửi tao ngu đi
 set "l[0]=$settings = Get-Content '%settingsJson%' -Raw ^| ConvertFrom-Json;"
 set "l[1]=$newOption = @{"
-set "l[2]=    commandline = '%optionCommandLine%';"
-set "l[3]=    guid = '{%guid%}';"
-set "l[4]=    hidden = $false;"
-set "l[5]=    name = '%optionName%';"
-set "l[6]=    source = '%optionSource%'"
-set "l[7]=};"
-set "l[8]=$settings.profiles.list += $newOption;"
-set "l[9]=$settings.defaultProfile = '{%guid%}';"
-set "l[10]=$modified = $settings | ConvertTo-Json -Depth 100;"
-set "l[11]=Set-Content -Path '%settingsJson%' -Value $modified;"
+set "l[2]=    tabTitle = 'Git Bash';"
+set "l[3]=    useAcrylic = $true;"
+set "l[4]=    acrylicOpacity = 0.5;"
+set "l[5]=    closeOnExit = 'automatic';"
+set "l[6]=    icon = 'ms-appdata:///roaming/git-bash_32px.ico';"
+set "l[7]=    fontFace = 'Cascadia Code';"
+set "l[8]=    fontSize = 12;"
+set "l[9]=    fontWeight = 'normal';"
+set "l[10]=    commandline = '%optionCommandLine%';"
+set "l[11]=    guid = '{%guid%}';"
+set "l[12]=    hidden = $false;"
+set "l[13]=    name = '%optionName%';"
+set "l[14]=};"
+set "l[15]=$settings.profiles.list += $newOption;"
+set "l[16]=$settings.defaultProfile = '{%guid%}';"
+set "l[17]=$modified = $settings | ConvertTo-Json -Depth 100;"
+set "l[18]=Set-Content -Path '%settingsJson%' -Value $modified;"
 
-set "psScriptPath=%TEMP%\update-wt-settings-%currentTs%.ps1"
+set "psScriptPath=update-wt-settings-%currentTs%.ps1"
 
 echo %l[0]% > %psScriptPath%
-for /L %%n in (1,1,11) do (
-    if %%n==9 (
+for /L %%n in (1,1,18) do (
+    if %%n==16 (
         if "%SetDefault%"=="false" (
             echo "Skip setting default profile"
         ) else (
@@ -116,4 +122,5 @@ powershell -ExecutionPolicy Bypass -File "%psScriptPath%"
 del "%psScriptPath%"
 
 endlocal
+echo Done, check Windows Terminal settings for the new option.
 pause
