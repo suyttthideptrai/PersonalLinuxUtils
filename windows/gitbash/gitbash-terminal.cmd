@@ -1,11 +1,25 @@
+:: Add Git Bash Profile to Windows Terminal
+:: Usage 1: "gitbash-terminal.cmd" to add Git Bash profile option to Windows Terminal.
+:: Usage 2: "gitbash-terminal.cmd SetDefault" to add Git Bash profile option to Windows Terminal and set it as default profile.
+::
+:: Edit: Địt con mẹ code cả buổi chiều mới biết được là tính năng nó implement rồi.
+::       Có thể thêm profile bằng cách chọn "Add a profile" trong Windows Terminal.
+::       Địt mẹ
+::       Có thể dùng "gitbash-terminal.cmd SetDefault" để ăn luôn mà ko cần setup nhé. yêu <3
+::       Địttttt mẹeeeee
+
+
 @echo off
-setlocal
+setlocal enabledelayedexpansion
+
+set "SetDefault=false"
+if "%~1"=="SetDefault" (
+    set "SetDefault=true"
+)
 
 echo Checking if Windows Terminal is installed...
 
-
 powershell -Command "Get-AppxPackage -Name Microsoft.WindowsTerminal" >nul 2>&1
-
 if %errorlevel% equ 0 (
     echo Windows Terminal is installed.
 ) else (
@@ -68,10 +82,38 @@ set "optionName=Git Bash"
 set "optionSource=Windows.Terminal.Wsl"
 
 :: At this point I do think why not use plain PowerShell to do the job. :"D
-set "psScriptContent=$settings = Get-Content '%settingsJson%' -Raw ^| ConvertFrom-Json;\r$newOption = @{\r    commandline = '%optionCommandLine%';\r    guid = '{%guid%}';\r    hidden = $false;\r    name = '%optionName%';^\r    source = '%optionSource%'\r};\r$settings.profiles.list += $newOption;\r$modified = $settings ^| ConvertTo-Json -Depth 100;\rSet-Content -Path '%settingsJson%' -Value $modified;"
+:: Edit: Ừ chửi tao ngu đi
+set "l[0]=$settings = Get-Content '%settingsJson%' -Raw ^| ConvertFrom-Json;"
+set "l[1]=$newOption = @{"
+set "l[2]=    commandline = '%optionCommandLine%';"
+set "l[3]=    guid = '{%guid%}';"
+set "l[4]=    hidden = $false;"
+set "l[5]=    name = '%optionName%';"
+set "l[6]=    source = '%optionSource%'"
+set "l[7]=};"
+set "l[8]=$settings.profiles.list += $newOption;"
+set "l[9]=$settings.defaultProfile = '{%guid%}';"
+set "l[10]=$modified = $settings | ConvertTo-Json -Depth 100;"
+set "l[11]=Set-Content -Path '%settingsJson%' -Value $modified;"
 
+set "psScriptPath=%TEMP%\update-wt-settings-%currentTs%.ps1"
 
-echo %psScriptContent%
+echo %l[0]% > %psScriptPath%
+for /L %%n in (1,1,11) do (
+    if %%n==9 (
+        if "%SetDefault%"=="false" (
+            echo "Skip setting default profile"
+        ) else (
+            echo !l[%%n]! >> %psScriptPath%
+        )
+    ) else (
+        echo !l[%%n]! >> %psScriptPath%
+    )
+)
+
+powershell -ExecutionPolicy Bypass -File "%psScriptPath%"
+:: Edit: Dọn file temp. Chịch xong chuồn như J97
+del "%psScriptPath%"
 
 endlocal
 pause
